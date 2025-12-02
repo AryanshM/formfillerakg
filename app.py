@@ -146,7 +146,7 @@ def fill_pdf(template_bytes, name, email, dob,
     return out_buffer.getvalue(), hours_text
 
 # ------- Streamlit UI -------
-st.set_page_config(page_title="PDF Auto-Fill + Random Hours", layout="wide")
+st.set_page_config(page_title="Entrepreneurship Auto-Fill + Random Hours", layout="wide")
 st.title("PDF Auto-Fill — assigns random Total Study Time (60–65 hours)")
 
 
@@ -162,17 +162,22 @@ with col3:
 
 
 if st.button("Generate PDF with Random Hours"):
-    try:
-        pdf_bytes, hours_str = fill_pdf(
-            None,
-            name, email, dob
-        )
-        st.success(f"PDF generated — Total Study Time placed as **{hours_str}**")
-        st.download_button(
-            label="Download Filled PDF",
-            data=pdf_bytes,
-            file_name="filled_with_hours.pdf",
-            mime="application/pdf"
-        )
-    except Exception as e:
-        st.error(f"Failed to generate PDF: {e}")
+    if not uploaded_pdf:
+        st.error("Please upload a PDF first.")
+    else:
+        try:
+            pdf_bytes, hours_str = fill_pdf(
+                uploaded_pdf.read(),
+                name, email, dob,
+                text_color=text_color,
+                background_color=background_color
+            )
+            st.success(f"PDF generated — Total Study Time placed as **{hours_str}**")
+            st.download_button(
+                label="Download Filled PDF",
+                data=pdf_bytes,
+                file_name="filled_with_hours.pdf",
+                mime="application/pdf"
+            )
+        except Exception as e:
+            st.error(f"Failed to generate PDF: {e}")
