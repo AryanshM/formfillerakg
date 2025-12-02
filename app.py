@@ -1,0 +1,72 @@
+import streamlit as st
+from reportlab.pdfgen import canvas
+from pypdf import PdfReader, PdfWriter
+import io
+
+coords = {
+    "name": (230, 630),
+    "email": (230, 610),
+    "dob": (230, 570)
+}
+
+def create_overlay(page_width, page_height, name, email, dob):
+    packet = io.BytesIO()
+    c = canvas.Canvas(packet, pagesize=(page_width, page_height))
+    c.setFont("Helvetica", 11)
+
+    c.drawString(*coords["name"], name)
+    c.drawString(*coords["email"], email)
+    c.drawString(*coords["dob"], dob)
+
+    c.save()
+    packet.seek(0)
+    return PdfReader(packet)
+
+def fill_pdf(template_bytes, name, email, dob):
+    reader = PdfReader(io.BytesIO(template_bytes))
+    writer = PdfWriter()
+
+    page = reader.pages[0]
+    w = float(page.mediabox.width)
+    h = float(page.mediabox.height)
+
+    overlay_pdf = create_overlay(w, h, name, email, dob)
+    overlay_page = overlay_pdf.pages[0]
+
+    for i, p in enumerate(reader.pages):
+        if i == 0:
+            p.merge_page(overlay_page)
+        writer.add_page(p)
+
+    out_buffer = io.BytesIO()
+    writer.write(out_buffer)
+    return out_buffer.getvalue()
+
+
+st.title("PDF Auto-Fill Tool (Alison Learner Record)")
+st.write("Upload the original PDF and enter values for Name, Email, and DOB.")
+
+uploaded_pdf = st.file_uploader("Upload Alison PDF", type=["pdf"])
+
+name = st.text_input("Name")
+email = st.text_input("Email")
+dob = st.text_input("Date of Birth")
+
+if st.button("Generate PDF"):
+    if not uploaded_pdf:
+        st.error("Please upload a PDF first.")
+    else:
+        output_pdf_bytes = fill_pdf(
+            uploaded_pdf.read(),
+            name,
+            email,
+            dob
+        )
+        st.success("Your PDF is ready!")
+
+        st.download_button(
+            label="Download Filled PDF",
+            data=output_pdf_bytes,
+            file_name="filled.pdf",
+            mime="application/pdf"
+        )
