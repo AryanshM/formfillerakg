@@ -162,22 +162,17 @@ with col3:
 
 
 if st.button("Generate PDF with Random Hours"):
-    if not uploaded_pdf:
-        st.error("Please upload a PDF first.")
-    else:
-        try:
-            pdf_bytes, hours_str = fill_pdf(
-                uploaded_pdf.read(),
-                name, email, dob,
-                text_color=text_color,
-                background_color=background_color
-            )
-            st.success(f"PDF generated — Total Study Time placed as **{hours_str}**")
-            st.download_button(
-                label="Download Filled PDF",
-                data=pdf_bytes,
-                file_name="filled_with_hours.pdf",
-                mime="application/pdf"
-            )
-        except Exception as e:
-            st.error(f"Failed to generate PDF: {e}")
+    try:
+        pdf_bytes, hours_str = fill_pdf(
+            None,
+            name, email, dob
+        )
+        st.success(f"PDF generated — Total Study Time placed as **{hours_str}**")
+        st.download_button(
+            label="Download Filled PDF",
+            data=pdf_bytes,
+            file_name="filled_with_hours.pdf",
+            mime="application/pdf"
+        )
+    except Exception as e:
+        st.error(f"Failed to generate PDF: {e}")
